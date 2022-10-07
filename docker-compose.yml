@@ -1,0 +1,56 @@
+version: '3.8'
+services:
+  postgres:
+    container_name: keycloak-db
+    env_file:
+      - ./keycloak-postgres.env
+    image: postgres:14.5-alpine
+    restart: unless-stopped
+    volumes:
+      - ./db-postgres/db:/var/lib/postgresql/data
+    networks:
+      - keycloak-network
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:19.0.2
+    restart: unless-stopped
+    env_file:
+      - ./keycloak-postgres.env
+    entrypoint: /opt/keycloak/bin/kc.sh start --auto-build
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`keycloak.oliver.jakobrathberger.eu`)"
+      - "traefik.http.routers.keycloak.entrypoints=websecure"
+      - "traefik.http.routers.keycloak.tls.certresolver=myresolver"
+    networks:
+      - keycloak-network
+    depends_on:
+      - postgres
+
+  traefik:
+    container_name: traefik
+    image: traefik:v2.9
+    restart: unless-stopped
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=sugic.oliver@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      #- "--log.level=DEBUG"
+    ports:
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - keycloak-network
+
+networks:
+  keycloak-network:
+    driver: bridge
