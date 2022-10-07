@@ -26,8 +26,8 @@ jobs:
         run: |
           ssh ${{ secrets.DEPUSER }}@${{ secrets.DEPIP }} "
           cd /home/ubuntu/01
-          docker-compose pull
-          docker-compose stop
-          docker-compose rm -f
-          docker-compose up -d
+          sudo docker-compose pull
+          sudo docker-compose stop
+          sudo docker-compose rm -f
+          sudo docker-compose up -d
           "
