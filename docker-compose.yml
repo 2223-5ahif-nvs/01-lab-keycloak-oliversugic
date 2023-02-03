@@ -19,7 +19,7 @@ services:
     entrypoint: /opt/keycloak/bin/kc.sh start --auto-build
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.keycloak.rule=Host(`keycloak.oliver.jakobrathberger.eu`)"
+      - "traefik.http.routers.keycloak.rule=Host(`oliver.jakobrathberger.eu`)"
       - "traefik.http.routers.keycloak.entrypoints=websecure"
       - "traefik.http.routers.keycloak.tls.certresolver=myresolver"
     networks:
